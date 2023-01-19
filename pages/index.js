@@ -5,6 +5,7 @@ import io from "socket.io-client";
 let socket;
 
 const Home = () => {
+  let hasSocket = false;
   const [messages, setMessages] = useState(["yoooo"]);
   const [input, setInput] = useState("");
 
@@ -13,16 +14,19 @@ const Home = () => {
   }, []);
 
   const socketInitializer = async () => {
-    await fetch("/api/socket");
-    socket = io();
+    if (!hasSocket) {
+      hasSocket = true;
+      await fetch("/api");
+      socket = io();
 
-    socket.on("connect", () => {
-      console.log("connected");
-    });
+      socket.on("connect", () => {
+        console.log("connected");
+      });
 
-    socket.on("update-input", (msg) => {
-      setMessages([...messages, msg]);
-    });
+      socket.on("update-input", (msg) => {
+        setMessages((oldState) => [...oldState, msg]);
+      });
+    }
   };
 
   const handleSubmit = (e) => {
