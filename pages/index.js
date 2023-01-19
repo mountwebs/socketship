@@ -21,9 +21,7 @@ const Home = () => {
     });
 
     socket.on("update-input", (msg) => {
-      messages.push(msg);
-      console.log(messages);
-      setMessages(messages);
+      setMessages([...messages, msg]);
     });
   };
 
