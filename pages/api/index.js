@@ -9,8 +9,12 @@ const SocketHandler = (req, res) => {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
-      socket.on("input-change", (msg) => {
-        io.emit("update-input", msg);
+      socket.on("chat-message", (msg) => {
+        io.emit("chat-message", msg);
+      });
+
+      socket.on("BOMBING", (squareIndex) => {
+        socket.broadcast.emit("wasBombed", squareIndex);
       });
     });
   }

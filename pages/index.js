@@ -1,38 +1,90 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-let socket;
+// import Chat from "../components/chat";
+import { GiSailboat } from "react-icons/gi";
 
-const Home = () => {
-  let hasSocket = false;
-  const [messages, setMessages] = useState(["yoooo"]);
-  const [input, setInput] = useState("");
+const Square = ({ handleClick, squareState, index }) => {
+  return (
+    <div
+      onClick={() => handleClick(index)}
+      className={squareState.bombed ? styles.bombedGridItem : styles.gridItem}
+    />
+  );
+};
+
+const Board = ({ MyBoard, socket }) => {
+  const [board, setBoard] = useState(null);
+  const boardSize = 3;
 
   useEffect(() => {
-    socketInitializer();
-  }, []);
+    const initSquare = {
+      bombed: false,
+    };
+    if (MyBoard) {
+      initSquare.boat = false;
 
-  const socketInitializer = async () => {
-    if (!hasSocket) {
-      hasSocket = true;
-      await fetch("/api");
-      socket = io();
-
-      socket.on("connect", () => {
-        console.log("connected");
-      });
-
-      socket.on("update-input", (msg) => {
-        setMessages((oldState) => [...oldState, msg]);
+      socket.on("wasBombed", (square) => {
+        setBoard((oldState) => {
+          return oldState.map((state, index) => {
+            if (square !== index) return state;
+            return { ...state, bombed: true };
+          });
+        });
       });
     }
-  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    socket.emit("input-change", input);
-  };
+    const boardState = [];
+    for (let i = 0; i < boardSize * boardSize; i++) {
+      boardState.push(initSquare);
+    }
+    setBoard(boardState);
+  }, []);
+
+  const handleClick = MyBoard
+    ? () => {}
+    : (clickedSquare) => {
+        socket.emit("BOMBING", clickedSquare);
+
+        setBoard((oldState) => {
+          return oldState.map((state, index) => {
+            if (clickedSquare !== index) return state;
+            return { ...state, bombed: true };
+          });
+        });
+      };
+
+  return (
+    <div
+      className={styles.grid}
+      style={{ gridTemplateColumns: `repeat(${boardSize}, 1fr)` }}
+    >
+      {board &&
+        board.map((square, index) => (
+          <Square
+            squareState={square}
+            index={index}
+            handleClick={handleClick}
+            key={index}
+          />
+        ))}
+    </div>
+  );
+};
+
+const Home = () => {
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    (async function socketInitializer() {
+      if (!socket) {
+        await fetch("/api");
+        const serverConnection = io();
+        setSocket(serverConnection);
+      }
+    })();
+  }, []);
 
   return (
     <>
@@ -40,21 +92,17 @@ const Home = () => {
         <title>SocketShip</title>
       </Head>
 
-      <div>
+      {socket && (
         <div>
-          {messages.map((msg, index) => (
-            <p key={index}>{msg}</p>
-          ))}
+          {/* <Chat /> */}
+          <br />
+          <Board socket={socket} />
+          <br />
+          <br />
+          <br />
+          <Board MyBoard socket={socket} />
         </div>
-        <form onSubmit={handleSubmit}>
-          <input
-            placeholder="Type something"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <button type="submit">Send</button>
-        </form>
-      </div>
+      )}
     </>
   );
 };
