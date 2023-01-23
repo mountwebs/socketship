@@ -9,12 +9,21 @@ const SocketHandler = (req, res) => {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
+      io.emit("new player");
+      socket.on("new player", () => {
+        // socket.broadcast.emit("new player");
+      });
+
       socket.on("chat-message", (msg) => {
         io.emit("chat-message", msg);
       });
 
       socket.on("BOMBING", (squareIndex) => {
         socket.broadcast.emit("wasBombed", squareIndex);
+      });
+
+      socket.on("leaving", () => {
+        socket.broadcast.emit("player leaving");
       });
     });
   }

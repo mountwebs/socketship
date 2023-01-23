@@ -2,8 +2,6 @@
   height: 20rem;
   width: 20rem;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* grid-template-rows: repeat(2, 1fr); */
   grid-gap: 10px;
 }
 

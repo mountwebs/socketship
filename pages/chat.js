@@ -24,7 +24,7 @@ const Chat = () => {
         console.log("connected chat");
       });
 
-      socket.on("update-input", (msg) => {
+      socket.on("chat-message", (msg) => {
         setMessages((oldState) => [...oldState, msg]);
       });
     }
@@ -32,7 +32,7 @@ const Chat = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    socket.emit("input-change", input);
+    socket.emit("chat-message", input);
   };
 
   return (
